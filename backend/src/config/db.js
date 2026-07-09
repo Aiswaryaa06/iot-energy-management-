@@ -4,7 +4,7 @@ const path = require('path');
 const fs = require('fs');
 
 // Determine database file path (resolved relative to backend root)
-const envDbFile = process.env.DB_FILE || '../database/smarthome.db';
+const envDbFile = process.env.DB_FILE || './database/smarthome.db';
 const dbPath = path.isAbsolute(envDbFile) 
   ? envDbFile 
   : path.resolve(__dirname, '../../', envDbFile);
@@ -68,9 +68,8 @@ const dbHelper = {
 // Automatically run schema and seed files if they exist
 async function initializeDatabase() {
   try {
-    const schemaPath = path.resolve(__dirname, '../../../database/schema.sql');
-    const seedPath = path.resolve(__dirname, '../../../database/seed.sql');
-
+    const schemaPath = path.resolve(__dirname, '../../database/schema.sql');
+    const seedPath = path.resolve(__dirname, '../../database/seed.sql');
     if (fs.existsSync(schemaPath)) {
       console.log('Loading database schema from:', schemaPath);
       const schemaSql = fs.readFileSync(schemaPath, 'utf8');
