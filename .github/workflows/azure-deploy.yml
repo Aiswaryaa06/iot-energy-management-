@@ -1,0 +1,50 @@
+# .github/workflows/azure-deploy.yml
+name: Build and Deploy to Azure App Service
+
+on:
+  push:
+    branches:
+      - main # Triggers the workflow on push to main branch
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+
+      - name: Build React Frontend
+        run: |
+          cd frontend
+          npm ci
+          npm run build
+
+      - name: Build Express Backend
+        run: |
+          cd backend
+          npm ci --only=production
+
+      - name: Package Frontend with Backend for Single-Container Deployment
+        run: |
+          # Copy built React files into the backend release structure
+          mkdir -p backend/frontend/dist
+          cp -r frontend/dist/* backend/frontend/dist/
+
+      - name: Package Release Archive
+        run: |
+          # Zip only the backend folder (which now contains the frontend/dist assets)
+          cd backend
+          zip -r ../release.zip .
+
+      - name: Deploy to Azure App Service
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ secrets.AZURE_APP_SERVICE_NAME }} # Set in your GitHub repository secrets
+          publish-profile: ${{ secrets.AZURE_APP_SERVICE_PUBLISH_PROFILE }} # Set in your GitHub repository secrets
+          package: ./release.zip
